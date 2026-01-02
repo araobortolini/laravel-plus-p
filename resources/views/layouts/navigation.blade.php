@@ -10,7 +10,10 @@
 
         <div class="shrink-0 flex items-center">
             <a href="{{ route('dashboard') }}">
-                <span class="font-bold text-lg tracking-wider text-white">MASTER</span>
+                {{-- [ALTERADO] Nome dinâmico para Mobile --}}
+                <span class="font-bold text-lg tracking-wider text-white">
+                    {{ Auth::user()->is_master ? 'MASTER' : 'REVENDA' }}
+                </span>
             </a>
         </div>
         
@@ -49,8 +52,9 @@
          class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto border-r border-gray-700 shadow-[6px_0_20px_rgba(0,0,0,0.8)] relative flex flex-col h-full">
         
         <div class="hidden md:flex items-center justify-center h-16 border-b border-gray-800 px-4 flex-shrink-0">
-            <a href="{{ route('dashboard') }}" class="text-white font-bold text-xl tracking-wider">
-                MASTER PANEL
+            <a href="{{ route('dashboard') }}" class="text-white font-bold text-xl tracking-wider uppercase">
+                {{-- [ALTERADO] Nome dinâmico para Desktop --}}
+                {{ Auth::user()->is_master ? 'MASTER PANEL' : 'PAINEL REVENDA' }}
             </a>
         </div>
 
@@ -62,11 +66,25 @@
                 Dashboard
             </a>
 
-            {{-- Link Revendas --}}
-            <a href="{{ route('master.tenants.index') }}" class="flex items-center px-4 py-2 rounded-md transition-colors {{ request()->routeIs('master.tenants.*') ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                Revendas
-            </a>
+            {{-- [ALTERADO] Link Revendas: Aparece SOMENTE para o Master --}}
+            @if(Auth::user()->is_master)
+                <a href="{{ route('master.tenants.index') }}" class="flex items-center px-4 py-2 rounded-md transition-colors {{ request()->routeIs('master.tenants.*') ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    Revendas
+                </a>
+            @endif
+
+            {{-- Link de Retorno Dourado: Só aparece se estiver simulando --}}
+            @if(session()->has('impersonator_id'))
+                <div class="pt-4 mt-4 border-t border-gray-800">
+                    <a href="{{ route('master.leave-impersonation') }}" class="flex items-center px-4 py-3 rounded-md font-bold text-[11px] uppercase tracking-widest transition-all bg-[#D4AF37] hover:bg-[#B8860B] text-gray-900 border border-[#C5A028] shadow-[0_4px_15px_rgba(212,175,55,0.3)]">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Voltar para Master
+                    </a>
+                </div>
+            @endif
 
         </div>
     </div>

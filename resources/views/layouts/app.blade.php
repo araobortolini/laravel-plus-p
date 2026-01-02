@@ -5,7 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        {{-- Título dinâmico para a aba do navegador --}}
+        <title>{{ Auth::user()->is_master ? 'Master Panel' : 'Painel Revenda' }} - {{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -23,6 +24,7 @@
                 <header class="hidden md:flex items-center justify-between bg-gray-900 shadow h-16 px-6 border-b border-gray-800">
                     
                     <div class="font-semibold text-xl text-white leading-tight">
+                        {{-- O header será preenchido pelo <x-slot name="header"> de cada página --}}
                         @if (isset($header))
                             {{ $header }}
                         @endif
@@ -52,7 +54,7 @@
                                     <x-dropdown-link :href="route('logout')"
                                             onclick="event.preventDefault();
                                                         this.closest('form').submit();">
-                                            {{ __('Sair') }}
+                                        {{ __('Sair') }}
                                     </x-dropdown-link>
                                 </form>
                             </x-slot>

@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; // Importado para permitir exclusão lógica
 use Illuminate\Support\Str;
 
 class Tenant extends Model
 {
+    use SoftDeletes; // Habilita o Soft Delete no modelo
+
     /**
      * Define os campos que podem ser preenchidos em massa.
      * Devem ser exatamente os mesmos do seu formulário.
@@ -36,5 +39,14 @@ class Tenant extends Model
                 $tenant->id = (string) Str::uuid();
             }
         });
+    }
+
+    /**
+     * Relacionamento: Uma Revenda (Tenant) possui um Usuário vinculado.
+     * Isso resolve o erro 'Call to undefined relationship [user]'.
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class);
     }
 }

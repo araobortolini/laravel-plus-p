@@ -26,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_master',  // Permissão do Super Admin
+        'tenant_id',  // VINCULO COM A REVENDA/LOJA (ADICIONADO)
     ];
     // do bloco model_user.
 
@@ -35,7 +36,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        // 'password',  <-- COMENTADO PARA PERMITIR VISUALIZAÇÃO NO MODAL (HASH)
         'remember_token',
     ];
 
@@ -51,5 +52,13 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_master' => 'boolean', // Garante que venha como true/false do banco
         ];
+    }
+
+    /**
+     * Relacionamento com o Tenant
+     */
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }

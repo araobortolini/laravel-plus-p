@@ -13,9 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     // inicio do bloco registrar_middleware ...
     ->withMiddleware(function (Middleware $middleware) {
         
-        // Aqui registramos o apelido 'is_master' apontando para a classe que criamos
+        // Registramos o apelido 'is_master' apontando para a classe CheckIsMaster
         $middleware->alias([
-            'is_master' => \App\Http\Middleware\IsMaster::class,
+            'is_master' => \App\Http\Middleware\CheckIsMaster::class,
         ]);
         
     })

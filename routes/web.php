@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Master\TenantController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,12 +15,15 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Rota do Dashboard Padrão (usuários comuns)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Rota para sair da simulação e voltar ao Master (Dourada)
+Route::get('/leave-impersonation', [TenantController::class, 'leaveImpersonation'])->name('master.leave-impersonation');
 
-// Rotas de Perfil (Profile)
+// [UNIFICADO] Redirecionamento inteligente
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+// Rotas de Perfil (Profile) - CORRIGIDO com Route::
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -37,7 +41,19 @@ Route::middleware(['auth', 'verified', 'is_master'])->prefix('master')->name('ma
 
     // Gerenciamento de Revendas
     Route::resource('tenants', TenantController::class);
+
+    // Rota para entrar na conta da revenda
+    Route::get('/login-as/{user}', [TenantController::class, 'loginAs'])->name('login-as');
 });
 // do bloco rotas_master.
+
+// --- ÁREA DO REVENDEDOR (TENANT) ---
+Route::middleware(['auth', 'verified'])->prefix('tenant')->name('tenant.')->group(function () {
+    
+    // Dashboard da Revenda
+    Route::get('/dashboard', function () {
+        return view('tenant.dashboard');
+    })->name('dashboard');
+});
 
 require __DIR__.'/auth.php';
