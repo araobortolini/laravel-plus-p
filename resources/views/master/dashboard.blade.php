@@ -1,0 +1,24 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Painel Master - Visão Geral') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <h3 class="text-lg font-bold mb-4">Bem-vindo, Administrador Master!</h3>
+                    <p>Aqui você tem controle total sobre todas as revendas e lojas do sistema.</p>
+                    
+                    <div class="mt-6">
+                        <a href="{{ route('master.tenants.index') }}" class="text-blue-600 hover:underline">
+                            Ir para Gerenciamento de Revendas &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
