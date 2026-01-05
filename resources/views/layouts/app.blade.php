@@ -23,8 +23,8 @@
                 
                 <header class="hidden md:flex items-center justify-between bg-gray-900 shadow h-16 px-6 border-b border-gray-800">
                     
-                    <div class="font-semibold text-xl text-white leading-tight">
-                        {{-- O header será preenchido pelo <x-slot name="header"> de cada página --}}
+                    {{-- A correção segura: usamos o seletor descendente para forçar branco apenas nos textos deste bloco --}}
+                    <div class="font-semibold text-xl leading-tight text-white [&_h2]:text-white [&_div]:text-white">
                         @if (isset($header))
                             {{ $header }}
                         @endif
