@@ -10,7 +10,6 @@
 
         <div class="shrink-0 flex items-center">
             <a href="{{ route('dashboard') }}">
-                {{-- [ALTERADO] Nome dinâmico para Mobile --}}
                 <span class="font-bold text-lg tracking-wider text-white">
                     {{ Auth::user()->is_master ? 'MASTER' : 'REVENDA' }}
                 </span>
@@ -53,7 +52,6 @@
         
         <div class="hidden md:flex items-center justify-center h-16 border-b border-gray-800 px-4 flex-shrink-0">
             <a href="{{ route('dashboard') }}" class="text-white font-bold text-xl tracking-wider uppercase">
-                {{-- [ALTERADO] Nome dinâmico para Desktop --}}
                 {{ Auth::user()->is_master ? 'MASTER PANEL' : 'PAINEL REVENDA' }}
             </a>
         </div>
@@ -66,11 +64,36 @@
                 Dashboard
             </a>
 
-            {{-- [ALTERADO] Link Revendas: Aparece SOMENTE para o Master --}}
+            {{-- Links Exclusivos do Master --}}
             @if(Auth::user()->is_master)
                 <a href="{{ route('master.tenants.index') }}" class="flex items-center px-4 py-2 rounded-md transition-colors {{ request()->routeIs('master.tenants.*') ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     Revendas
+                </a>
+
+                {{-- [NOVO] Menu Configurações com Dropdown --}}
+                <div x-data="{ open: {{ request()->routeIs('master.settings.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-2 rounded-md transition-colors bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Configurações
+                        </span>
+                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    
+                    <div x-show="open" x-cloak class="mt-2 ml-4 space-y-1 border-l-2 border-gray-700 pl-4">
+                        <a href="{{ route('master.settings.segments.index') }}" class="block px-4 py-2 text-sm rounded-md transition-colors {{ request()->routeIs('master.settings.segments.*') ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700' }}">
+                            Segmentos
+                        </a>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Link Lojas: Aparece SOMENTE para a Revenda --}}
+            @if(!Auth::user()->is_master)
+                <a href="{{ route('tenant.stores.index') }}" class="flex items-center px-4 py-2 rounded-md transition-colors {{ request()->routeIs('tenant.stores.*') ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Lojas
                 </a>
             @endif
 
