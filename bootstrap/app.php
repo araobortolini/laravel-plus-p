@@ -13,9 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     // inicio do bloco registrar_middleware ...
     ->withMiddleware(function (Middleware $middleware) {
         
-        // Registramos o apelido 'is_master' apontando para a classe CheckIsMaster
+        // Registramos os apelidos de middleware para uso nas rotas
         $middleware->alias([
-            'is_master' => \App\Http\Middleware\CheckIsMaster::class,
+            'is_master'     => \App\Http\Middleware\CheckIsMaster::class,
+            'tenant.active' => \App\Http\Middleware\CheckTenantStatus::class, // NOVO: Proteção de revenda bloqueada
         ]);
         
     })

@@ -3,16 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes; // Importado para permitir exclusão lógica
+use Illuminate\Database\Eloquent\SoftDeletes; 
+use Illuminate\Database\Eloquent\Factories\HasFactory; // Adicionado
 use Illuminate\Support\Str;
 
 class Tenant extends Model
 {
-    use SoftDeletes; // Habilita o Soft Delete no modelo
+    use SoftDeletes, HasFactory; // Adicionado HasFactory
 
     /**
      * Define os campos que podem ser preenchidos em massa.
-     * Devem ser exatamente os mesmos do seu formulário.
      */
     protected $fillable = [
         'seller_name', // Nome do Revendedor
@@ -20,17 +20,17 @@ class Tenant extends Model
         'document',    // CPF/CNPJ
         'email',       // E-mail
         'phone',       // Telefone
+        'is_active',   // Status de Bloqueio (True = Ativo, False = Bloqueado)
     ];
 
     /**
-     * Configuração para UUID (visto no pgAdmin).
-     * Informa ao Laravel que o ID não é um número e não é autoincremento.
+     * Configuração para UUID.
      */
     protected $keyType = 'string';
     public $incrementing = false;
 
     /**
-     * Evento Booted: Gera o UUID automaticamente sempre que uma nova revenda for criada.
+     * Evento Booted: Gera o UUID automaticamente.
      */
     protected static function booted()
     {
@@ -43,10 +43,17 @@ class Tenant extends Model
 
     /**
      * Relacionamento: Uma Revenda (Tenant) possui um Usuário vinculado.
-     * Isso resolve o erro 'Call to undefined relationship [user]'.
      */
     public function user()
     {
         return $this->hasOne(User::class);
+    }
+
+    /**
+     * Relacionamento: Uma Revenda possui muitas Lojas.
+     */
+    public function stores()
+    {
+        return $this->hasMany(Store::class);
     }
 }

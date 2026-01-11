@@ -8,13 +8,12 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth; // Adicionado para gerenciar o login
+use Illuminate\Support\Facades\Auth;
 
 class TenantController extends Controller
 {
     public function index()
     {
-        // Alterado para carregar o relacionamento 'user' necessário para o loginAs
         $tenants = Tenant::with('user')->latest()->paginate(10);
         return view('master.tenants.index', compact('tenants'));
     }
@@ -28,11 +27,11 @@ class TenantController extends Controller
     {
         $validated = $request->validate([
             'seller_name' => 'required|string|max:255',
-            'name'        => 'required|string|max:255',
-            'document'    => 'required|string|max:255',
-            'email'       => 'required|email|unique:tenants,email|unique:users,email',
-            'phone'       => 'required|string|max:255',
-            'password'    => 'required|string|min:8|confirmed',
+            'name'         => 'required|string|max:255',
+            'document'     => 'required|string|max:255',
+            'email'        => 'required|email|unique:tenants,email|unique:users,email',
+            'phone'        => 'required|string|max:255',
+            'password'     => 'required|string|min:8|confirmed',
         ]);
 
         try {
@@ -40,10 +39,10 @@ class TenantController extends Controller
 
             $tenant = Tenant::create([
                 'seller_name' => $validated['seller_name'],
-                'name'        => $validated['name'],
-                'document'    => $validated['document'],
-                'email'       => $validated['email'],
-                'phone'       => $validated['phone'],
+                'name'         => $validated['name'],
+                'document'     => $validated['document'],
+                'email'        => $validated['email'],
+                'phone'        => $validated['phone'],
             ]);
 
             User::create([
@@ -62,59 +61,166 @@ class TenantController extends Controller
         }
     }
 
+    public function edit(Tenant $tenant)
+    {
+        $user = $tenant->user; 
+        return view('master.tenants.edit', compact('tenant', 'user'));
+    }
+
+    public function update(Request $request, Tenant $tenant)
+    {
+        $user = $tenant->user;
+
+        $validated = $request->validate([
+            'seller_name' => 'required|string|max:255',
+            'name'         => 'required|string|max:255',
+            'document'     => 'required|string|max:255',
+            'email'        => 'required|email|unique:tenants,email,'.$tenant->id.'|unique:users,email,'.$user->id,
+            'phone'        => 'required|string|max:255',
+            'password'     => 'nullable|string|min:8|confirmed', 
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $tenant->update([
+                'seller_name' => $validated['seller_name'],
+                'name'         => $validated['name'],
+                'document'     => $validated['document'],
+                'email'        => $validated['email'],
+                'phone'        => $validated['phone'],
+            ]);
+
+            $userData = [
+                'name'  => $validated['seller_name'],
+                'email' => $validated['email'],
+            ];
+
+            if ($request->filled('password')) {
+                $userData['password'] = Hash::make($validated['password']);
+            }
+
+            $user->update($userData);
+
+            DB::commit();
+            return redirect()->route('master.tenants.index')->with('success', 'Dados da revenda atualizados!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->withErrors(['error' => 'Erro ao atualizar: ' . $e->getMessage()]);
+        }
+    }
+
     public function destroy(Tenant $tenant)
     {
         try {
             DB::beginTransaction();
 
-            // Desativa o usuário vinculado para impedir login
             if($tenant->user) {
                 $tenant->user->delete(); 
             }
 
-            // A exclusão do Tenant é "Soft", as Lojas permanecem no banco para migração futura
             $tenant->delete();
 
             DB::commit();
-            return redirect()->route('master.tenants.index')->with('success', 'Revenda excluída. Clientes preservados para migração.');
+            return redirect()->route('master.tenants.index')->with('success', 'Revenda excluída.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Falha na exclusão.');
         }
     }
 
-    // --- NOVOS MÉTODOS PARA ACESSO RÁPIDO (IMPERSONATE) ---
-
-    public function loginAs(User $user)
+    public function toggleStatus(Tenant $tenant)
     {
-        // Armazena o ID do Master atual na sessão antes de trocar de conta
-        session(['impersonator_id' => Auth::id()]);
+        $tenant->update([
+            'is_active' => !$tenant->is_active
+        ]);
 
-        // Faz o login como o usuário da revenda
+        $status = $tenant->is_active ? 'ativada' : 'bloqueada';
+        return back()->with('success', "A revenda {$tenant->name} foi {$status} com sucesso!");
+    }
+
+    public function loginAs($email)
+    {
+        $user = User::where('email', $email)->firstOrFail();
+
+        if ($user->id === Auth::id()) {
+            return back()->with('error', 'Você já está logado nesta conta.');
+        }
+
+        session(['impersonator_id' => Auth::id()]);
         Auth::login($user);
 
-        // [ATUALIZADO] Removido o ->with('success') para não exibir o campo verde ao entrar
-        return redirect()->route('tenant.dashboard');
+        return redirect()->route('dashboard')->with('success', 'Acesso simulado como: ' . $user->name);
     }
 
     public function leaveImpersonation()
     {
-        // Recupera o ID do Master da sessão
         $masterId = session('impersonator_id');
 
         if ($masterId) {
             $master = User::find($masterId);
-            
-            // Faz login de volta na conta Master
             Auth::login($master);
-            
-            // Limpa a marcação de simulação da sessão
             session()->forget('impersonator_id');
-
-            // Mantido o success aqui para confirmar que você saiu da conta da revenda com segurança
+            
             return redirect()->route('master.tenants.index')->with('success', 'Você voltou para o Painel Master.');
         }
 
         return redirect('/');
+    }
+
+    // --- NOVOS MÉTODOS PARA REVENDAS EXCLUÍDAS (SOFT DELETES) ---
+
+    /**
+     * Reabilita uma revenda que foi excluída logicamente.
+     */
+    public function restore($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Busca incluindo deletados para poder restaurar
+            $tenant = Tenant::withTrashed()->findOrFail($id);
+            $tenant->restore();
+
+            // Restaura também o usuário principal da revenda
+            $user = User::withTrashed()->where('email', $tenant->email)->first();
+            if ($user) {
+                $user->restore();
+            }
+
+            DB::commit();
+            return redirect()->route('master.stores.transition')->with('success', "A revenda {$tenant->name} e seus acessos foram restaurados!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Erro ao restaurar revenda.');
+        }
+    }
+
+    /**
+     * Exclui permanentemente a revenda do banco de dados.
+     */
+    public function forceDelete($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $tenant = Tenant::withTrashed()->findOrFail($id);
+            
+            // Remove o usuário definitivamente
+            $user = User::withTrashed()->where('email', $tenant->email)->first();
+            if ($user) {
+                $user->forceDelete();
+            }
+
+            // Exclui a revenda permanentemente
+            $tenant->forceDelete();
+
+            DB::commit();
+            return redirect()->route('master.stores.transition')->with('success', 'Revenda removida permanentemente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Erro na exclusão permanente.');
+        }
     }
 }

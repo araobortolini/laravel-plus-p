@@ -1,12 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        {{-- Alterado de text-gray-800 para text-white --}}
-        <h2 class="font-semibold text-xl text-white leading-tight">
+        <h2 class="font-semibold text-xl text-white leading-tight uppercase tracking-widest">
             {{ __('Gerenciar Revendas') }}
         </h2>
     </x-slot>
 
-    {{-- [ALTERADO] x-data agora inclui lógica de desafio numérico --}}
     <div class="py-12" x-data="{ 
         openModal: false, 
         openDeleteModal: false, 
@@ -20,7 +18,6 @@
     }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- Mensagem de Sucesso --}}
             @if(session('success'))
                 <div class="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 font-bold shadow-sm">
                     {{ session('success') }}
@@ -36,7 +33,7 @@
                         </a>
                     </div>
 
-                    <div class="w-full overflow-hidden"> 
+                    <div class="w-full overflow-hidden border border-gray-200 rounded-lg"> 
                         <table class="w-full divide-y divide-gray-200 table-fixed">
                             <thead class="bg-gray-900">
                                 <tr>
@@ -46,10 +43,10 @@
                                     <th scope="col" class="hidden lg:table-cell px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider w-3/12">
                                         Email / Contato
                                     </th>
-                                    <th scope="col" class="px-2 py-3 text-center text-xs font-bold text-white uppercase tracking-wider w-20">
+                                    <th scope="col" class="px-2 py-3 text-center text-xs font-bold text-white uppercase tracking-wider w-24">
                                         Status
                                     </th>
-                                    <th scope="col" class="px-2 py-3 text-right text-xs font-bold text-white uppercase tracking-wider w-[70px] sm:w-[100px]">
+                                    <th scope="col" class="px-2 py-3 text-right text-xs font-bold text-white uppercase tracking-wider w-[120px]">
                                         Ações
                                     </th>
                                 </tr>
@@ -64,9 +61,9 @@
                                                 {{ substr($tenant->name, 0, 2) }}
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <div class="text-sm font-bold text-gray-900 truncate">{{ $tenant->name }}</div>
+                                                <div class="text-sm font-bold text-gray-900 truncate uppercase">{{ $tenant->name }}</div>
                                                 <div class="text-[10px] text-gray-500 truncate uppercase">Resp: {{ $tenant->seller_name }}</div>
-                                                <div class="text-xs text-gray-400 truncate">CNPJ/CPF: {{ $tenant->document }}</div>
+                                                <div class="text-xs text-gray-400 truncate tracking-tighter">CNPJ/CPF: {{ $tenant->document }}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -77,13 +74,23 @@
                                     </td>
 
                                     <td class="px-1 py-4 text-center align-middle">
-                                        <span class="inline-flex px-2 py-1 text-[10px] font-bold leading-4 rounded-full bg-green-100 text-green-800">
-                                            Ativo
+                                        <span class="inline-flex px-2 py-1 text-[10px] font-bold leading-4 rounded-full {{ $tenant->is_active ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200' }} uppercase">
+                                            {{ $tenant->is_active ? 'Ativo' : 'Bloqueado' }}
                                         </span>
                                     </td>
 
                                     <td class="px-1 py-4 text-right align-middle">
                                         <div class="flex justify-end items-center gap-2" @click.stop>
+                                            
+                                            <form action="{{ route('master.tenants.toggle', $tenant->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" title="{{ $tenant->is_active ? 'Bloquear' : 'Desbloquear' }}" class="{{ $tenant->is_active ? 'text-amber-500 hover:text-amber-700' : 'text-green-600 hover:text-green-800' }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $tenant->is_active ? 'M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z' : 'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z' }}" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+
                                             <a href="{{ route('master.tenants.edit', $tenant->id) }}" class="text-blue-600 hover:text-blue-900" title="Editar">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
@@ -100,12 +107,12 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="px-3 py-8 text-center text-gray-500 italic">Nenhuma revenda cadastrada.</td>
+                                    <td colspan="4" class="px-3 py-8 text-center text-gray-500 italic uppercase font-bold tracking-widest bg-gray-50">Nenhuma revenda cadastrada.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
-                        <div class="mt-4">
+                        <div class="mt-4 px-4 pb-4">
                             {{ $tenants->links() }}
                         </div>
                     </div>
@@ -157,11 +164,11 @@
                         </div>
                     </div>
 
-                    {{-- [ALTERADO] Rodapé agora contém o botão de Acesso --}}
                     <div class="bg-gray-50 px-4 py-4 flex justify-between items-center border-t border-gray-100">
                         <div class="flex items-center gap-3">
                             <template x-if="selectedTenant.user">
-                                <a :href="'/master/login-as/' + selectedTenant.user.id" class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded uppercase tracking-widest hover:bg-blue-700 transition flex items-center shadow-md">
+                                {{-- AJUSTE AQUI: O href agora é construído via AlpineJS --}}
+                                <a :href="'/master/login-as/' + selectedTenant.email" class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded uppercase tracking-widest hover:bg-blue-700 transition flex items-center shadow-md">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
@@ -195,7 +202,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900 uppercase">Confirmar Exclusão?</h3>
+                        <h3 class="text-lg font-bold text-gray-900 uppercase tracking-widest">Confirmar Exclusão?</h3>
                         <p class="text-sm text-gray-500 mt-2 italic">
                             A revenda <span class="font-bold text-gray-900" x-text="selectedTenant.name"></span> será desativada. 
                         </p>
@@ -207,18 +214,18 @@
                                    x-model="userInput" 
                                    maxlength="4"
                                    placeholder="----"
-                                   class="w-full text-center text-lg font-bold border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+                                   class="w-full text-center text-lg font-bold border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 shadow-sm">
                         </div>
                     </div>
 
                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse gap-2">
-                        <form :action="'/master/tenants/' + selectedTenant.id" method="POST">
+                        <form :action="'{{ route('master.tenants.index') }}/' + selectedTenant.id" method="POST">
                             @csrf
                             @method('DELETE')
                             <button type="submit" 
                                     :disabled="userInput !== deleteCode"
                                     :class="userInput === deleteCode ? 'bg-red-600 hover:bg-red-700 shadow-md' : 'bg-gray-300 cursor-not-allowed'"
-                                    class="w-full inline-flex justify-center rounded-md border border-transparent px-4 py-2 bg-red-600 text-xs font-bold text-white uppercase transition-all sm:w-auto">
+                                    class="w-full inline-flex justify-center rounded-md border border-transparent px-4 py-2 text-xs font-bold text-white uppercase transition-all sm:w-auto">
                                 Sim, Excluir
                             </button>
                         </form>

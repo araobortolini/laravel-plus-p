@@ -14,7 +14,6 @@ class IsMaster
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    // inicio do bloco codigo_middleware ...
     public function handle(Request $request, Closure $next): Response
     {
         // 1. Se não estiver logado, manda pro login
@@ -22,13 +21,14 @@ class IsMaster
             return redirect()->route('login');
         }
 
-        // 2. Se estiver logado mas NÃO for Master, proíbe o acesso (Erro 403)
-        if (!Auth::user()->is_master) {
+        // 2. Se estiver logado mas NÃO for Master, proíbe o acesso
+        // Ajustado: Considera Master se is_master for true OU se o tenant_id for null
+        $user = Auth::user();
+        if (!$user->is_master && !is_null($user->tenant_id)) {
             abort(403, 'ACESSO NEGADO: Esta área é restrita ao Super Admin.');
         }
 
         // 3. Se passou pelos testes, permite o acesso
         return $next($request);
     }
-    // do bloco codigo_middleware.
 }

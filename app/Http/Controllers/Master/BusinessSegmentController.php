@@ -15,15 +15,25 @@ class BusinessSegmentController extends Controller
     public function index()
     {
         $segments = BusinessSegment::orderBy('name', 'asc')->get();
-        return view('master.settings.segments.index', compact('segments'));
+
+        // [ATUALIZAÇÃO IMPORTANTE]
+        // Precisamos enviar os comportamentos para a View 'index'
+        // para que o Modal de Criação consiga montar o Select de opções.
+        $behaviors = [
+            'food_service' => 'Food Service (Mesas/Comandas)',
+            'retail'       => 'Varejo (Check-out Rápido)',
+            'service'      => 'Serviços (Ordem de Serviço)',
+            'industry'     => 'Indústria (Produção/Ficha Técnica)',
+        ];
+
+        return view('master.settings.segments.index', compact('segments', 'behaviors'));
     }
 
     /**
-     * Exibe o formulário de criação com os 4 Motores Base.
+     * Exibe o formulário de criação (Caso acesse via URL direta, opcional).
      */
     public function create()
     {
-        // Motores que definimos para a evolução do sistema
         $behaviors = [
             'food_service' => 'Food Service (Mesas/Comandas)',
             'retail'       => 'Varejo (Check-out Rápido)',
@@ -35,7 +45,7 @@ class BusinessSegmentController extends Controller
     }
 
     /**
-     * Salva o novo segmento no banco de dados.
+     * Salva o novo segmento no banco de dados via Modal ou Form.
      */
     public function store(Request $request)
     {
@@ -103,7 +113,7 @@ class BusinessSegmentController extends Controller
     }
 
     /**
-     * Remove o segmento (Opcional, com SoftDeletes).
+     * Remove o segmento.
      */
     public function destroy(BusinessSegment $segment)
     {
